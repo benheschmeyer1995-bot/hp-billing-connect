@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The one-time code in this page's address must not travel anywhere as a referrer. -->
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Returning to HP Billing…</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1>Returning to HP Billing…</h1>
+  <p id="msg" class="sub">Handing QuickBooks' answer to HP Billing on this computer.</p>
+  <p><a id="go" class="button" href="#" hidden>Continue to HP Billing</a></p>
+</main>
+<script>
+/*
+ * QuickBooks sends the browser here after "Connect" is approved in HP Billing,
+ * with a one-time code in the address. QuickBooks' live (production) service
+ * will only send it to an https:// page, and HP Billing runs on this computer
+ * at http://localhost:8788 - so this page's whole job is to pass the address
+ * straight on to HP Billing, in this same browser.
+ *
+ * It sends nothing to any server, stores nothing, and loads nothing from
+ * anywhere else. The code is useless on its own: it works once, expires within
+ * minutes, and needs HP Billing's secret key, which never leaves the office
+ * computer. HP Billing also checks that the answer is for the request it made.
+ */
+(function () {
+  var APP = 'http://localhost:8788/api/qbo/callback';
+  var query = window.location.search;
+  var p = new URLSearchParams(query);
+  var msg = document.getElementById('msg');
+  var go = document.getElementById('go');
+
+  if (!p.get('state') || !(p.get('code') || p.get('error'))) {
+    msg.textContent = 'There is nothing to hand on. This page is only used while connecting HP Billing ' +
+      'to QuickBooks: start from Setup → Connect to QuickBooks in HP Billing.';
+    return;
+  }
+  go.href = APP + query;
+  go.hidden = false;
+  // replace(), not a link: the code stays out of this browser's history.
+  window.location.replace(APP + query);
+  setTimeout(function () {
+    msg.textContent = 'If HP Billing did not open, make sure it is running on this computer, then press Continue.';
+  }, 3000);
+})();
+</script>
+</body>
+</html>
